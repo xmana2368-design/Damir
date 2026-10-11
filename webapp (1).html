@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="aurora">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>JIDU Jadval</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:#05060f; --text:#f4f6ff; --muted:#98a2c8; --line:rgba(255,255,255,.12);
+  --a1:#5b8cff; --a2:#22d3ee; --a3:#a78bfa; --a4:#f472b6;
+  --ok:#34d399; --bad:#fb7185; --warn:#fbbf24;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+html[data-theme=sunset]{--bg:#0e0710;--a1:#ff7a59;--a2:#fbbf24;--a3:#f472b6;--a4:#a78bfa}
+html[data-theme=emerald]{--bg:#04110e;--a1:#10b981;--a2:#22d3ee;--a3:#a3e635;--a4:#34d399}
+html[data-theme=royal]{--bg:#08061c;--a1:#8b5cf6;--a2:#ec4899;--a3:#6366f1;--a4:#22d3ee}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg)}
+body{font-family:-apple-system,"SF Pro Display","Segoe UI",Roboto,Inter,sans-serif;color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased;transition:background .6s}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+[hidden]{display:none!important}
+b{font-weight:800}
+
+/* ================= FON ================= */
+#fx{position:fixed;inset:0;z-index:0;pointer-events:none}
+.aurora{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.aurora i{position:absolute;border-radius:50%;filter:blur(90px);animation:drift 18s ease-in-out infinite;transition:background .8s}
+.aurora i:nth-child(1){width:380px;height:380px;background:var(--a1);top:-120px;left:-100px;opacity:.5}
+.aurora i:nth-child(2){width:320px;height:320px;background:var(--a2);top:34%;right:-130px;opacity:.36;animation-delay:-6s}
+.aurora i:nth-child(3){width:340px;height:340px;background:var(--a3);bottom:-130px;left:8%;opacity:.4;animation-delay:-11s}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(46px,-56px) scale(1.15)}66%{transform:translate(-34px,44px) scale(.9)}}
+.lowfx .aurora i{animation:none;filter:blur(60px)}
+.lowfx .glass,.lowfx .nav,.lowfx #sheet{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(18,22,52,.92)!important}
+
+/* ================= SPLASH ================= */
+#splash{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#111638,var(--bg) 70%);transition:opacity .7s,visibility .7s}
+#splash.out{opacity:0;visibility:hidden}
+.sp{text-align:center}
+.sp svg{width:132px;height:132px;overflow:visible;filter:drop-shadow(0 0 22px var(--a2))}
+.sp .trk{fill:none;stroke:rgba(255,255,255,.1);stroke-width:7}
+.sp .arc{fill:none;stroke:url(#spg);stroke-width:7;stroke-linecap:round;stroke-dasharray:340;stroke-dashoffset:340;transform:rotate(-90deg);transform-origin:center;animation:draw 1.2s .1s cubic-bezier(.6,0,.2,1) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.sp .cap{font-size:34px;font-weight:900;fill:#fff;text-anchor:middle;opacity:0;animation:fade .5s .7s forwards}
+.sp h1{font-size:44px;font-weight:900;letter-spacing:7px;margin-top:12px}
+.sp h1 span{display:inline-block;opacity:0;transform:translateY(28px) scale(.6);animation:letter .6s cubic-bezier(.2,1.5,.4,1) forwards;animation-delay:calc(.4s + var(--i)*.09s)}
+.sp p{color:var(--muted);margin-top:8px;font-size:14px;letter-spacing:.5px;opacity:0;animation:fade .6s 1.05s forwards}
+@keyframes letter{to{opacity:1;transform:none}}
+@keyframes fade{to{opacity:1}}
+
+/* ================= UMUMIY ================= */
+.app{position:relative;z-index:1;height:100%}
+.scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(116px + var(--safe-b));-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.view{display:none}
+.view.on{display:block;animation:viewIn .55s cubic-bezier(.2,.9,.25,1)}
+@keyframes viewIn{from{opacity:0;transform:translateY(24px) scale(.985);filter:blur(7px)}to{opacity:1;transform:none;filter:none}}
+.rise{animation:rise .75s cubic-bezier(.2,.9,.25,1) backwards;animation-delay:calc(var(--d,0)*70ms)}
+@keyframes rise{from{opacity:0;transform:translateY(28px) scale(.97)}}
+.glass{position:relative;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.03));border:1px solid var(--line);border-radius:24px;backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);box-shadow:0 12px 40px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.14)}
+.tilt{transform:perspective(800px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1));transition:transform .28s cubic-bezier(.2,.8,.2,1);will-change:transform}
+.tilt:active{--sc:.975}
+.tilt::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(circle at var(--mx,50%) var(--my,0%),rgba(255,255,255,.2),transparent 58%);opacity:0;transition:opacity .3s}
+.tilt.hot::after{opacity:1}
+.rip{position:relative;overflow:hidden}
+.ripple{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 65%);transform:scale(0);animation:rp .7s ease-out forwards;pointer-events:none}
+@keyframes rp{to{transform:scale(1);opacity:0}}
+.grad{background:linear-gradient(90deg,var(--a2),var(--a1),var(--a3),var(--a4),var(--a2));background-size:240% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite}
+@keyframes shine{to{background-position:240% center}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sec{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:24px 4px 11px}
+.sec button{font-size:12px;font-weight:700;color:var(--a2);text-transform:none;letter-spacing:0}
+.lm{color:var(--muted);font-size:13px;margin-top:5px;line-height:1.45}
+.empty{text-align:center;padding:40px 22px;color:var(--muted);line-height:1.5}
+.empty .em{font-size:50px;display:block;margin-bottom:12px;animation:bob 3s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px)}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:16px;font-weight:800;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--a1),var(--a3));box-shadow:0 10px 28px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.12) inset;transition:transform .15s}
+.btn:active{transform:scale(.95)}
+.btn.ghost{background:rgba(255,255,255,.08);box-shadow:0 0 0 1px var(--line) inset}
+.btn.full{width:100%}
+
+/* ================= HEADER ================= */
+.top{display:flex;align-items:center;gap:13px;margin-bottom:16px}
+.avw{position:relative;width:58px;height:58px;border-radius:50%;isolation:isolate;flex-shrink:0}
+.avw::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,var(--a1),var(--a2),var(--a3),var(--a4),var(--a1));animation:spin 5s linear infinite;z-index:-1;box-shadow:0 0 28px var(--a1)}
+.ava{position:absolute;inset:3px;border-radius:50%;overflow:hidden;display:grid;place-items:center;font-weight:900;font-size:22px;background:#12163a;color:#fff}
+.ava img{width:100%;height:100%;object-fit:cover}
+.hello{flex:1;min-width:0}
+.hello small{color:var(--muted);font-size:13px}
+.hello h1{font-size:23px;font-weight:900;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.streak{padding:9px 14px;border-radius:999px;font-weight:800;font-size:14px;background:linear-gradient(135deg,rgba(251,191,36,.25),rgba(251,113,133,.22));border:1px solid rgba(251,191,36,.45);color:#fde68a;white-space:nowrap}
+
+/* ================= JONLI HALQA ================= */
+.live{padding:22px 16px 16px;text-align:center;overflow:hidden}
+.live::before{content:"";position:absolute;inset:-40% -20% auto;height:80%;background:radial-gradient(ellipse at 50% 100%,var(--a1),transparent 65%);opacity:.22;pointer-events:none}
+.ringbox{position:relative;width:min(74vw,290px);aspect-ratio:1;margin:0 auto}
+.ringbox svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.trk{fill:none;stroke:rgba(255,255,255,.08);stroke-width:11}
+.prg{fill:none;stroke:url(#lg);stroke-width:11;stroke-linecap:round;stroke-dasharray:590.62;stroke-dashoffset:590.62;transform:rotate(-90deg);transform-origin:110px 110px;transition:stroke-dashoffset 1s linear;filter:drop-shadow(0 0 9px var(--a2))}
+.head{fill:#fff;filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 14px var(--a2))}
+.tick{stroke:rgba(255,255,255,.14);stroke-width:2;stroke-linecap:round;transition:stroke .4s}
+.tick.on{stroke:var(--a2)}
+.lc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.lc small{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);max-width:60%;line-height:1.3}
+.lc b{font-size:clamp(40px,13vw,56px);font-weight:900;letter-spacing:-1px;font-variant-numeric:tabular-nums;line-height:1}
+.lc span{font-size:13px;color:var(--muted);font-weight:600;max-width:60%;line-height:1.3}
+.lc .big{font-size:60px;animation:bob 3s ease-in-out infinite}
+.pdots{display:flex;justify-content:center;gap:7px;margin-top:16px}
+.pd{flex:1;max-width:46px;padding:7px 0 6px;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.04);text-align:center;transition:.4s}
+.pd b{display:block;font-size:15px}
+.pd small{font-size:9.5px;color:var(--muted);font-weight:700}
+.pd.done{opacity:.4}
+.pd.act{background:linear-gradient(160deg,var(--a2),var(--a1));border-color:transparent;box-shadow:0 0 22px var(--a2);animation:pulse 1.8s ease-in-out infinite}
+.pd.act small{color:rgba(255,255,255,.9)}
+.pd.nxt{border-color:var(--a2);box-shadow:0 0 12px rgba(255,255,255,.12)}
+@keyframes pulse{50%{transform:scale(1.1)}}
+
+/* ================= MENING JADVALIM ================= */
+.pn{padding:18px;margin-top:14px;cursor:pointer}
+.pn-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.badge{padding:5px 11px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:1px}
+.badge.live{background:var(--ok);color:#03281b;animation:blink 1.6s infinite}
+.badge.nx{background:rgba(255,255,255,.12);border:1px solid var(--line)}
+@keyframes blink{50%{opacity:.55}}
+.pn-who{font-size:13px;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.pn h3{font-size:19px;line-height:1.25;font-weight:800}
+.bar{height:9px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:14px}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--a2),var(--a1),var(--a3));box-shadow:0 0 14px var(--a2);transition:width 1s linear}
+.pn-foot{margin-top:9px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between}
+.pn-foot b{color:var(--text)}
+.pn-cta{display:flex;align-items:center;gap:14px}
+.pn-cta .ic{width:50px;height:50px;border-radius:16px;display:grid;place-items:center;font-size:24px;background:linear-gradient(135deg,var(--a1),var(--a3));flex-shrink:0}
+.pn-cta b{display:block;font-size:16px}
+.pn-cta small{color:var(--muted);font-size:13px}
+
+/* ================= GLOBAL QIDIRUV (bosh) ================= */
+.gs{display:flex;align-items:center;gap:12px;width:100%;margin-top:14px;padding:16px 18px;text-align:left;color:var(--muted);font-size:15px;font-weight:600}
+.gs svg{width:22px;height:22px;stroke:var(--a2);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0}
+
+/* ================= BLOKLAR ================= */
+.blks{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.blk{display:flex;align-items:center;gap:12px;padding:14px;text-align:left}
+.blk svg{width:62px;height:62px;flex-shrink:0;overflow:visible}
+.blk .t{fill:none;stroke:rgba(255,255,255,.1);stroke-width:7}
+.blk .p{fill:none;stroke:var(--ok);stroke-width:7;stroke-linecap:round;stroke-dasharray:163.4;stroke-dashoffset:163.4;transform:rotate(-90deg);transform-origin:32px 32px;transition:stroke-dashoffset 1.2s cubic-bezier(.2,.9,.25,1),stroke .5s;filter:drop-shadow(0 0 5px currentColor)}
+.blk .p.w{stroke:var(--warn)}.blk .p.d{stroke:var(--bad)}
+.blk .bl{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.5px}
+.blk .bn{font-size:12px;color:var(--muted);margin-top:2px}
+.blk .bn b{font-size:21px;color:var(--text);margin-right:2px}
+.blk .lt{font-size:17px;font-weight:900}
+.blks .empty{grid-column:1/-1;padding:26px 10px}
+.ovnote{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+
+/* ================= QIDIRUV ================= */
+.sbox{position:relative;margin-bottom:12px}
+.sbox svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;pointer-events:none}
+.sbox input{width:100%;padding:17px 48px 17px 46px;border-radius:20px;border:1px solid var(--line);background:rgba(0,0,0,.32);font-size:16px;outline:none;transition:.25s;backdrop-filter:blur(14px)}
+.sbox input:focus{border-color:var(--a2);box-shadow:0 0 0 4px rgba(255,255,255,.07),0 0 30px -4px var(--a2)}
+.sbox input::placeholder{color:#6b749c}
+.sbox .x{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);font-size:13px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 9px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:10px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.05);font-weight:700;font-size:14px;white-space:nowrap;transition:.25s}
+.chip.on{background:linear-gradient(135deg,var(--a1),var(--a3));border-color:transparent;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.dchip{flex-shrink:0;min-width:60px;padding:10px 6px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.05);text-align:center;transition:.25s}
+.dchip small{display:block;font-size:11px;color:var(--muted);font-weight:700}
+.dchip b{font-size:19px}
+.dchip.on{background:linear-gradient(160deg,var(--a2),var(--a1));border-color:transparent;box-shadow:0 8px 22px rgba(0,0,0,.4);transform:translateY(-2px)}
+.dchip.on small{color:rgba(255,255,255,.9)}
+.rcent{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.rcent .chip{font-size:13px;padding:8px 14px}
+.grp{display:flex;align-items:center;gap:8px;margin:18px 4px 9px;font-size:12px;font-weight:800;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+.grp em{font-style:normal;padding:2px 9px;border-radius:99px;background:rgba(255,255,255,.1);font-size:11px}
+.res{display:flex;align-items:center;gap:13px;width:100%;padding:13px 15px;margin-bottom:10px;text-align:left}
+.res .ri{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-weight:900;font-size:16px;flex-shrink:0;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.35)}
+.res .rt{flex:1;min-width:0}
+.res .rt b{display:block;font-size:15px;line-height:1.25;word-break:break-word}
+.res .rt small{color:var(--muted);font-size:12px}
+.res i{color:var(--muted);font-style:normal;font-size:22px}
+
+/* ================= SHAXS ================= */
+.pcard{padding:18px;margin-bottom:12px}
+.pc-row{display:flex;align-items:center;gap:14px}
+.pc-row .ri{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;font-weight:900;font-size:20px;color:#fff;flex-shrink:0}
+.pc-row .pi{flex:1;min-width:0}
+.pc-row .pi b{display:block;font-size:18px;line-height:1.25;word-break:break-word}
+.pc-row .pi small{color:var(--muted);font-size:13px}
+.acts{display:flex;gap:9px;margin-top:15px}
+.act{flex:1;padding:12px 6px;border-radius:15px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;transition:.25s}
+.act.on{background:linear-gradient(135deg,var(--a1),var(--a3));border-color:transparent}
+.act:active{transform:scale(.94)}
+.summ{display:flex;gap:9px;margin:0 0 12px}
+.sm{flex:1;padding:12px 8px;text-align:center;border-radius:18px}
+.sm b{display:block;font-size:19px}
+.sm small{font-size:11px;color:var(--muted);font-weight:700}
+.tline{position:relative;padding-left:0}
+.lesson{display:flex;gap:14px;padding:16px;margin-bottom:11px;position:relative;overflow:hidden}
+.lesson.live{border-color:rgba(52,211,153,.75);box-shadow:0 0 0 1px rgba(52,211,153,.35),0 14px 40px rgba(52,211,153,.22)}
+.lesson.live .lt{padding-right:62px}
+.lesson.live::before{content:"HOZIR";position:absolute;right:13px;top:13px;font-size:10px;font-weight:900;letter-spacing:1px;padding:4px 9px;border-radius:999px;background:var(--ok);color:#03281b;animation:blink 1.6s infinite;z-index:2}
+.lesson.past{opacity:.55}
+.pb{width:54px;min-height:62px;align-self:flex-start;border-radius:17px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:25px;font-weight:900;flex-shrink:0;box-shadow:0 8px 22px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.3);padding:8px 0}
+.pb small{font-size:10px;font-weight:700;opacity:.9;margin-top:-2px}
+.p1{background:linear-gradient(135deg,#5b8cff,#3b5bff)}.p2{background:linear-gradient(135deg,#22d3ee,#0891b2)}.p3{background:linear-gradient(135deg,#34d399,#059669)}.p4{background:linear-gradient(135deg,#fbbf24,#d97706)}.p5{background:linear-gradient(135deg,#fb923c,#ea580c)}.p6{background:linear-gradient(135deg,#fb7185,#e11d48)}.p7{background:linear-gradient(135deg,#a78bfa,#7c3aed)}
+.lb{flex:1;min-width:0}
+.lt{font-weight:800;font-size:16px;line-height:1.28}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(255,255,255,.09);border:1px solid var(--line)}
+.rbtn{padding:5px 11px;border-radius:999px;font-size:12px;font-weight:800;background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.06));border:1px solid var(--a2);color:#fff;margin-left:4px}
+.lbar{margin-top:12px}
+.gap{display:flex;align-items:center;gap:10px;margin:2px 4px 11px;color:var(--muted);font-size:12px;font-weight:700}
+.gap::before,.gap::after{content:"";flex:1;height:1px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 4px,transparent 4px 9px)}
+.nowline{display:flex;align-items:center;gap:8px;margin:2px 0 11px;font-size:11px;font-weight:900;letter-spacing:1px;color:var(--bad)}
+.nowline::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--bad);box-shadow:0 0 12px var(--bad);animation:blink 1.4s infinite}
+.nowline::after{content:"";flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--bad),transparent)}
+
+/* ================= XONALAR ================= */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 12px}
+.stat{padding:16px;text-align:center}
+.stat b{display:block;font-size:38px;font-weight:900;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.5px}
+.stat.f b{color:var(--ok);text-shadow:0 0 24px rgba(52,211,153,.5)}.stat.b b{color:var(--bad);text-shadow:0 0 24px rgba(251,113,133,.5)}
+.split{height:12px;border-radius:99px;background:var(--bad);overflow:hidden;margin-bottom:6px;box-shadow:0 0 18px rgba(251,113,133,.25)}
+.split i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#10b981,var(--ok));box-shadow:0 0 16px var(--ok);transition:width 1.1s cubic-bezier(.2,.9,.25,1)}
+.fl{margin-bottom:15px}
+.fl h4{font-size:12px;letter-spacing:.8px;color:var(--muted);margin:0 4px 9px;font-weight:800}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{padding:10px 15px;border-radius:14px;font-weight:800;font-size:14px;background:rgba(52,211,153,.14);border:1px solid rgba(52,211,153,.5);color:#b6f5da;animation:pop .45s cubic-bezier(.2,1.5,.4,1) backwards;transition:transform .15s}
+.pill:active{transform:scale(.9)}
+@keyframes pop{from{opacity:0;transform:scale(.6)}}
+.bz{padding:14px 16px;margin-bottom:10px;border-left:4px solid var(--bad);width:100%;text-align:left;display:block}
+.bz b{font-size:16px}
+.tr{display:flex;gap:13px;padding:13px 16px;align-items:center;border-bottom:1px solid rgba(255,255,255,.07)}
+.tr:last-child{border-bottom:0}
+.tr .dt{width:13px;height:13px;border-radius:50%;flex-shrink:0}
+.tr .dt.f{background:var(--ok);box-shadow:0 0 12px var(--ok)}.tr .dt.b{background:var(--bad);box-shadow:0 0 12px var(--bad)}
+.tr.cur{background:linear-gradient(90deg,rgba(255,255,255,.1),transparent)}
+.tr .tx{flex:1;min-width:0;font-size:14px}.tr .tx small{display:block;color:var(--muted);margin-top:2px}
+.tr .tm{font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap}
+
+/* ================= PROFIL ================= */
+.me{padding:26px 18px;text-align:center;margin-bottom:12px}
+.me .avw{width:92px;height:92px;margin:0 auto 14px}
+.me .ava{font-size:36px}
+.me h2{font-size:23px;font-weight:900}
+.me .un{color:var(--muted);margin-top:3px}
+.me .bd{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.me .bd span{padding:5px 12px;border-radius:99px;font-size:12px;font-weight:800;background:rgba(255,255,255,.09);border:1px solid var(--line)}
+.stg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px}
+.sg{padding:15px 6px;text-align:center}
+.sg .e{font-size:22px}.sg b{display:block;font-size:22px;margin-top:3px}.sg small{font-size:11px;color:var(--muted);font-weight:700}
+.themes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.th{padding:14px 6px 10px;border-radius:20px;border:2px solid transparent;background:rgba(255,255,255,.05);text-align:center;font-size:12px;font-weight:800;transition:.3s}
+.th i{display:block;width:44px;height:44px;border-radius:50%;margin:0 auto 8px;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.th.on{border-color:#fff;background:rgba(255,255,255,.1);transform:translateY(-3px)}
+.set{display:flex;align-items:center;gap:13px;padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.07);width:100%;text-align:left}
+.set:last-child{border-bottom:0}
+.set .si{font-size:22px}.set .st{flex:1}.set .st b{display:block;font-size:15px}.set .st small{color:var(--muted);font-size:12px}
+.sw{width:50px;height:30px;border-radius:99px;background:rgba(255,255,255,.15);position:relative;transition:.35s;flex-shrink:0}
+.sw::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4);transition:.4s cubic-bezier(.3,1.5,.5,1)}
+.sw.on{background:linear-gradient(135deg,var(--a2),var(--a1))}
+.sw.on::after{transform:translateX(20px)}
+
+/* ================= XONA TOPUVCHI ================= */
+.finder{padding:18px 16px 16px;margin-top:14px;overflow:hidden}
+.finder::before{content:"";position:absolute;inset:auto -30% -55% -30%;height:75%;background:radial-gradient(ellipse at 50% 0%,var(--a3),transparent 65%);opacity:.2;pointer-events:none}
+.finder>*{position:relative}
+.fd-h{display:flex;align-items:center;gap:13px;margin-bottom:12px}
+.fd-ic{width:52px;height:52px;border-radius:18px;display:grid;place-items:center;font-size:26px;flex-shrink:0;background:linear-gradient(135deg,var(--a2),var(--a1));box-shadow:0 10px 26px rgba(0,0,0,.4),0 0 26px -4px var(--a2)}
+.fd-h b{display:block;font-size:18px;letter-spacing:-.2px}
+.fd-h small{display:block;color:var(--muted);font-size:12.5px;line-height:1.35;margin-top:2px}
+.fd-l{font-size:11px;font-weight:800;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:8px 4px 6px}
+.fd-hint{font-size:12.5px;color:var(--muted);margin:2px 4px 12px;min-height:18px}
+.fd-hint b{color:var(--text)}
+.fd-go{margin-top:2px;padding:17px;font-size:16px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--a2),var(--a1) 55%,var(--a3))}
+.fd-go::after{content:"";position:absolute;top:0;bottom:0;width:60%;left:-70%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.4),transparent);transform:skewX(-18deg);animation:sweep 3.4s ease-in-out infinite}
+@keyframes sweep{60%,100%{left:130%}}
+.fd-go:disabled{opacity:.75}
+.spinr{display:inline-block;width:18px;height:18px;border-radius:50%;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;animation:spin .8s linear infinite}
+.spinr.big{width:34px;height:34px;border-width:4px;border-color:rgba(255,255,255,.15);border-top-color:var(--a2);flex-shrink:0}
+.fd-load{display:flex;align-items:center;gap:14px;padding:18px 6px 6px}
+.fd-load b{display:block;font-size:15px}.fd-load small{color:var(--muted);font-size:12.5px;line-height:1.4}
+.pick{margin-top:14px;padding:20px 16px 16px;text-align:center;overflow:hidden;border-color:rgba(52,211,153,.5);box-shadow:0 14px 44px rgba(52,211,153,.2),inset 0 1px 0 rgba(255,255,255,.14);animation:rise .6s cubic-bezier(.2,.9,.25,1)}
+.pick::before{content:"";position:absolute;inset:-30% -10% auto;height:70%;background:radial-gradient(ellipse at 50% 100%,rgba(52,211,153,.5),transparent 65%);opacity:.45;pointer-events:none}
+.pick>*{position:relative}
+.pk-top{font-size:11px;font-weight:900;letter-spacing:1.5px;color:var(--ok)}
+.pk-room{font-size:clamp(50px,17vw,68px);font-weight:900;letter-spacing:-1.5px;line-height:1.1;margin:6px 0 2px;font-variant-numeric:tabular-nums;background:linear-gradient(135deg,#fff,#b6f5da 60%,var(--ok));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(52,211,153,.55))}
+.pk-room.spin{opacity:.7;filter:blur(1.4px) drop-shadow(0 0 22px rgba(52,211,153,.4))}
+.pk-room.land{animation:land .65s cubic-bezier(.2,1.7,.4,1)}
+@keyframes land{from{transform:scale(1.6);opacity:.3}}
+.pk-meta{font-size:13.5px;font-weight:700;line-height:1.45}
+.pk-stat{font-size:12.5px;color:var(--muted);margin-top:4px}
+.pk-acts{display:flex;gap:8px;margin-top:16px}
+.pk-acts .act{font-size:12.5px;padding:12px 4px}
+.pk-list{margin-top:14px;text-align:left;animation:rise .45s cubic-bezier(.2,.9,.25,1)}
+.pick.none{border-color:rgba(251,191,36,.45);box-shadow:0 14px 44px rgba(251,191,36,.12)}
+.pick.none::before{background:radial-gradient(ellipse at 50% 100%,rgba(251,191,36,.45),transparent 65%)}
+.pick.none .em{font-size:44px;display:block;animation:bob 3s ease-in-out infinite}
+.pick.none b{display:block;font-size:16px;margin:8px 0 4px}
+.pick.none small{color:var(--muted);font-size:13px}
+.pick.none .chips{justify-content:center;margin-top:12px;flex-wrap:wrap;overflow:visible}
+
+/* ================= QO'SHIMCHA TUGMALAR / MUROJAAT ================= */
+.hbtn{width:46px;height:46px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(145deg,rgba(255,255,255,.13),rgba(255,255,255,.04));font-size:21px;flex-shrink:0;transition:transform .15s;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.hbtn:active{transform:scale(.88)}
+.qrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px}
+.qb{padding:16px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.qb span{font-size:27px}.qb b{font-size:14px}
+.ta{display:block;width:100%;min-height:132px;max-height:250px;resize:none;padding:15px 16px;border-radius:18px;border:1px solid var(--line);background:rgba(0,0,0,.35);font-size:16px;line-height:1.45;outline:none;transition:.25s}
+.ta:focus{border-color:var(--a2);box-shadow:0 0 0 4px rgba(255,255,255,.06),0 0 28px -4px var(--a2)}
+.ta::placeholder{color:#6b749c}
+.ct-foot{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin:7px 4px 14px}
+.ct-foot.warn #ctCnt{color:var(--warn);font-weight:800}
+.sent{text-align:center;padding:14px 4px 4px}
+.sent svg{width:104px;height:104px;overflow:visible;filter:drop-shadow(0 0 22px var(--ok))}
+.sent .c{fill:rgba(52,211,153,.12);stroke:var(--ok);stroke-width:4;stroke-dasharray:302;stroke-dashoffset:302;animation:draw2 .8s .05s cubic-bezier(.6,0,.2,1) forwards}
+.sent .k{fill:none;stroke:#fff;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:70;stroke-dashoffset:70;animation:draw2 .5s .7s ease-out forwards}
+@keyframes draw2{to{stroke-dashoffset:0}}
+.sent h3{font-size:22px;margin:12px 0 6px}
+.sent p{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:18px}
+
+/* ================= SHEET ================= */
+#sheetBg{position:fixed;inset:0;z-index:300;background:rgba(2,3,10,.62);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);opacity:0;visibility:hidden;transition:.4s}
+#sheetBg.on{opacity:1;visibility:visible}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:310;max-height:86%;overflow-y:auto;border-radius:32px 32px 0 0;padding:10px 16px calc(26px + var(--safe-b));background:linear-gradient(180deg,rgba(26,30,66,.97),rgba(9,11,28,.99));border:1px solid var(--line);border-bottom:0;box-shadow:0 -20px 60px rgba(0,0,0,.6);transform:translateY(105%);transition:transform .55s cubic-bezier(.2,.9,.25,1);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px)}
+#sheet.on{transform:none}
+.grab{width:46px;height:5px;border-radius:9px;background:rgba(255,255,255,.28);margin:0 auto 14px;touch-action:none}
+.sh-h{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.sh-h .ri{width:50px;height:50px;border-radius:16px;display:grid;place-items:center;font-size:24px;background:linear-gradient(135deg,var(--a1),var(--a3))}
+.sh-h b{display:block;font-size:20px}.sh-h small{color:var(--muted)}
+.sh-st{margin-left:auto;padding:6px 13px;border-radius:99px;font-size:12px;font-weight:900;letter-spacing:.5px}
+.sh-st.f{background:rgba(52,211,153,.18);color:var(--ok);border:1px solid var(--ok)}
+.sh-st.b{background:rgba(251,113,133,.18);color:var(--bad);border:1px solid var(--bad)}
+
+/* ================= NAV ================= */
+.nav{position:fixed;z-index:50;left:14px;right:14px;bottom:calc(12px + var(--safe-b));display:flex;padding:6px;border-radius:28px;background:rgba(14,17,42,.72);border:1px solid var(--line);backdrop-filter:blur(28px) saturate(1.5);-webkit-backdrop-filter:blur(28px) saturate(1.5);box-shadow:0 18px 50px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.12)}
+.ind{position:absolute;left:6px;top:6px;bottom:6px;width:calc((100% - 12px)/4);border-radius:22px;background:linear-gradient(135deg,var(--a1),var(--a3));box-shadow:0 8px 26px rgba(0,0,0,.45),0 0 26px -2px var(--a1);transform:translateX(calc(var(--i,0)*100%));transition:transform .55s cubic-bezier(.3,1.35,.5,1),background .6s}
+.nav button{position:relative;z-index:1;flex:1;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);transition:color .3s;border-radius:22px}
+.nav svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;transition:transform .45s cubic-bezier(.3,1.6,.5,1)}
+.nav em{font-style:normal;font-size:11px;font-weight:800}
+.nav button.on{color:#fff}
+.nav button.on svg{transform:translateY(-2px) scale(1.18)}
+
+/* ================= MAYDA ================= */
+.skel{height:84px;border-radius:22px;margin-bottom:12px;background:linear-gradient(100deg,rgba(255,255,255,.05) 30%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.05) 70%);background-size:300% 100%;animation:sk 1.3s infinite}
+@keyframes sk{from{background-position:100% 0}to{background-position:-100% 0}}
+.toast{position:fixed;z-index:900;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-150px);padding:13px 22px;border-radius:999px;font-weight:800;font-size:14px;background:rgba(14,17,42,.95);border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.5);transition:transform .5s cubic-bezier(.3,1.4,.5,1);max-width:90%;text-align:center}
+.toast.show{transform:translate(-50%,0)}
+.bp{position:fixed;z-index:850;pointer-events:none;font-size:20px;animation:bp .95s cubic-bezier(.15,.8,.3,1) forwards}
+@keyframes bp{from{transform:translate(0,0) scale(.3);opacity:1}to{transform:translate(var(--x),var(--y)) scale(1.25) rotate(var(--r));opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="sp">
+    <svg viewBox="0 0 120 120">
+      <defs><linearGradient id="spg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--a2)"/><stop offset="1" style="stop-color:var(--a3)"/></linearGradient></defs>
+      <circle class="trk" cx="60" cy="60" r="54"/><circle class="arc" cx="60" cy="60" r="54"/>
+      <text class="cap" x="60" y="72">🎓</text>
+    </svg>
+    <h1><span style="--i:0">J</span><span style="--i:1">I</span><span style="--i:2">D</span><span style="--i:3">U</span></h1>
+    <p>Dars jadvali · Bo'sh xonalar</p>
+  </div>
+</div>
+
+<canvas id="fx"></canvas>
+<div class="aurora"><i></i><i></i><i></i></div>
+<div class="toast" id="toast"></div>
+
+<div class="app">
+<div class="scroll" id="scroll">
+
+  <!-- ============ BOSH ============ -->
+  <section class="view on" id="v-home">
+    <div class="top rise" style="--d:0">
+      <div class="avw" id="avBtn"><div class="ava" id="ava">🎓</div></div>
+      <div class="hello"><small id="greet">Xush kelibsiz</small><h1 id="uname">Do'stim</h1></div>
+      <div class="streak" id="streakChip">🔥 1</div>
+      <button class="hbtn rip" id="ctBtn" aria-label="Adminga murojaat">💬</button>
+    </div>
+
+    <div class="glass live tilt rise" style="--d:1">
+      <div class="ringbox">
+        <svg viewBox="0 0 220 220">
+          <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--a2)"/><stop offset="1" style="stop-color:var(--a3)"/></linearGradient></defs>
+          <g id="ticks"></g>
+          <circle class="trk" cx="110" cy="110" r="94"/>
+          <circle class="prg" id="prg" cx="110" cy="110" r="94"/>
+          <circle class="head" id="head" cx="110" cy="16" r="6.5"/>
+        </svg>
+        <div class="lc"><small id="lLabel">&nbsp;</small><b id="lTime">--:--</b><span id="lSub">&nbsp;</span></div>
+      </div>
+      <div class="pdots" id="pdots"></div>
+    </div>
+
+    <div id="pin" class="rise" style="--d:2"></div>
+
+    <div class="glass finder rise" id="finder" style="--d:3">
+      <div class="fd-h"><div class="fd-ic">🎯</div><div><b>Menga bo'sh xona top</b><small>Faqat blok va parani tanlang — bo'sh xonani o'zim topib beraman</small></div></div>
+      <div class="fd-l">Blok</div>
+      <div class="chips" id="fdBlocks"></div>
+      <div class="fd-l">Para</div>
+      <div class="chips" id="fdParas"></div>
+      <div class="fd-hint" id="fdHint"></div>
+      <button class="btn full rip fd-go" id="fdGo">✨ Bo'sh xonani top</button>
+      <div id="fdOut"></div>
+    </div>
+
+    <button class="glass gs tilt rip rise" id="gsBtn" style="--d:3">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      Talaba, o'qituvchi, guruh yoki xona...
+    </button>
+
+    <div class="sec rise" style="--d:4"><span>Bloklar · hozir bo'sh xonalar</span><button id="ovRef">⟳ Yangilash</button></div>
+    <div class="blks rise" id="blks" style="--d:5"></div>
+    <div class="ovnote" id="ovNote"></div>
+
+    <div id="favWrap" hidden>
+      <div class="sec"><span>⭐ Sevimlilar</span></div>
+      <div id="favs"></div>
+    </div>
+
+    <div class="qrow">
+      <button class="glass qb tilt rip" id="ctBtn2"><span>💬</span><b>Adminga yozish</b></button>
+      <button class="glass qb tilt rip" id="botBtn"><span>🤖</span><b>Botga qaytish</b></button>
+    </div>
+  </section>
+
+  <!-- ============ QIDIRUV ============ -->
+  <section class="view" id="v-search">
+    <div class="sbox">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="text" placeholder="Ism-familiya, guruh yoki xona (A305)" autocomplete="off" autocapitalize="words" enterkeyhint="search">
+      <button class="x" id="qx" hidden>✕</button>
+    </div>
+    <div class="chips" id="sfs">
+      <button class="chip on" data-f="all">✨ Hammasi</button>
+      <button class="chip" data-f="s">🎓 Talaba</button>
+      <button class="chip" data-f="t">👨‍🏫 O'qituvchi</button>
+      <button class="chip" data-f="g">👥 Guruh</button>
+      <button class="chip" data-f="r">🚪 Xona</button>
+    </div>
+    <div id="recent"></div>
+    <div id="sres"></div>
+  </section>
+
+  <!-- ============ XONALAR ============ -->
+  <section class="view" id="v-rooms">
+    <button class="glass gs tilt rip" id="goFinder" style="margin:0 0 14px">🎯&nbsp; Menga bo'sh xona top — blok va parani tanlang</button>
+    <div class="sbox">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="rq" type="text" placeholder="Xona holati: A305, D-412..." autocomplete="off" enterkeyhint="search">
+    </div>
+    <div class="sec" style="margin-top:6px"><span>Bo'sh xonalar</span></div>
+    <div class="chips" id="blocks"></div>
+    <div class="chips" id="floors"></div>
+    <div class="chips" id="rdates"></div>
+    <div class="chips" id="paras"></div>
+    <div id="roomsOut"></div>
+  </section>
+
+  <!-- ============ SHAXS ============ -->
+  <section class="view" id="v-person">
+    <div class="glass pcard">
+      <div class="pc-row"><div class="ri" id="pAv"></div><div class="pi"><b id="pName"></b><small id="pType"></small></div></div>
+      <div class="acts">
+        <button class="act rip" id="pinBtn">📌 Mening jadvalim</button>
+        <button class="act rip" id="favBtn">☆ Sevimli</button>
+        <button class="act rip" id="shBtn">📤</button>
+      </div>
+    </div>
+    <div class="chips" id="pdates"></div>
+    <div id="psumm"></div>
+    <div id="lessons"></div>
+  </section>
+
+  <!-- ============ PROFIL ============ -->
+  <section class="view" id="v-me">
+    <div class="glass me rise" style="--d:0">
+      <div class="avw"><div class="ava" id="ava2">🎓</div></div>
+      <h2 id="mName">Foydalanuvchi</h2>
+      <div class="un" id="mUn"></div>
+      <div class="bd" id="mBd"></div>
+    </div>
+    <div class="stg rise" style="--d:1">
+      <div class="glass sg tilt"><div class="e">🔥</div><b id="stS">1</b><small>Kun seriyasi</small></div>
+      <div class="glass sg tilt"><div class="e">⭐</div><b id="stF">0</b><small>Sevimlilar</small></div>
+      <div class="glass sg tilt"><div class="e">🔎</div><b id="stQ">0</b><small>Qidiruvlar</small></div>
+    </div>
+
+    <div class="sec"><span>Rang mavzusi</span></div>
+    <div class="themes rise" style="--d:2">
+      <button class="th" data-th="aurora"><i style="background:linear-gradient(135deg,#5b8cff,#22d3ee)"></i>Aurora</button>
+      <button class="th" data-th="sunset"><i style="background:linear-gradient(135deg,#ff7a59,#f472b6)"></i>Quyosh</button>
+      <button class="th" data-th="emerald"><i style="background:linear-gradient(135deg,#10b981,#a3e635)"></i>Zumrad</button>
+      <button class="th" data-th="royal"><i style="background:linear-gradient(135deg,#8b5cf6,#ec4899)"></i>Qirol</button>
+    </div>
+
+    <div class="sec"><span>Sozlamalar</span></div>
+    <div class="glass rise" style="--d:3">
+      <button class="set" id="tHap"><span class="si">📳</span><span class="st"><b>Vibratsiya</b><small>Bosganda yengil titrash</small></span><span class="sw" id="swHap"></span></button>
+      <button class="set" id="tFx"><span class="si">✨</span><span class="st"><b>Fon effektlari</b><small>Zarrachalar va 3D qiyalik (batareyani tejash uchun o'chiring)</small></span><span class="sw" id="swFx"></span></button>
+    </div>
+
+    <div id="meFavWrap" hidden>
+      <div class="sec"><span>⭐ Sevimlilar</span></div>
+      <div id="meFavs"></div>
+    </div>
+    <div class="sec"><span>Yordam</span></div>
+    <div class="glass">
+      <button class="set" id="tCt"><span class="si">💬</span><span class="st"><b>Adminga murojaat</b><small>Savol, taklif yoki xatolik haqida yozing</small></span></button>
+      <button class="set" id="tBot"><span class="si">🤖</span><span class="st"><b>Botga qaytish</b><small>Ilovani yopib, bot chatiga o'tish</small></span></button>
+    </div>
+
+    <div style="margin-top:22px"><button class="btn ghost full rip" id="resetBtn">♻️ Sozlamalarni tiklash</button></div>
+  </section>
+
+</div>
+
+<nav class="nav" id="nav">
+  <i class="ind"></i>
+  <button data-t="home" class="on"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><em>Bosh</em></button>
+  <button data-t="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><em>Qidiruv</em></button>
+  <button data-t="rooms"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="15" cy="12.5" r="1"/></svg><em>Xonalar</em></button>
+  <button data-t="me"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><em>Profil</em></button>
+</nav>
+</div>
+
+<div id="sheetBg"></div>
+<div id="sheet"><div class="grab" id="grab"></div><div id="sheetBody"></div></div>
+
+<script>
+(() => {
+'use strict';
+const tg = window.Telegram && window.Telegram.WebApp;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+
+/* ---------- sozlamalar ---------- */
+const S = Object.assign({ theme: 'aurora', hap: true, fx: true }, ls.get('jidu_s', {}));
+const saveS = () => ls.set('jidu_s', S);
+const hap = (t = 'light') => { if (S.hap) try { tg.HapticFeedback.impactOccurred(t); } catch (e) {} };
+const hapSel = () => { if (S.hap) try { tg.HapticFeedback.selectionChanged(); } catch (e) {} };
+const hapOk = () => { if (S.hap) try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {} };
+
+const THEME_BG = { aurora: '#05060f', sunset: '#0e0710', emerald: '#04110e', royal: '#08061c' };
+function applyTheme(t) {
+  S.theme = t; saveS();
+  document.documentElement.dataset.theme = t;
+  try { tg.setHeaderColor(THEME_BG[t]); tg.setBackgroundColor(THEME_BG[t]); } catch (e) {}
+  fxColor();
+  document.querySelectorAll('.th').forEach(b => b.classList.toggle('on', b.dataset.th === t));
+}
+
+if (tg) {
+  try { tg.ready(); tg.expand(); } catch (e) {}
+  try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) {}
+}
+
+/* ---------- Toshkent vaqti ---------- */
+const fmtTk = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Tashkent', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23', weekday: 'short' });
+const DOW = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+function tk() {
+  const p = {};
+  fmtTk.formatToParts(new Date()).forEach(x => { p[x.type] = x.value; });
+  const h = (+p.hour) % 24;
+  return { y: +p.year, mo: +p.month, d: +p.day, h, mi: +p.minute, s: +p.second, dow: DOW[p.weekday], secs: h * 3600 + (+p.minute) * 60 + (+p.second), iso: `${p.year}-${p.month}-${p.day}` };
+}
+const toSec = t => { const [a, b] = String(t).split(':'); return (+a) * 3600 + (+b) * 60; };
+const PARAS = [[1,'08:30','09:40'],[2,'09:55','11:05'],[3,'11:20','12:30'],[4,'12:45','13:55'],[5,'14:30','15:40'],[6,'15:55','17:05'],[7,'17:20','18:30']]
+  .map(([n, s, e]) => ({ n, s, e, ss: toSec(s), es: toSec(e) }));
+const DAYS = ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'];
+const DAYS_FULL = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+function nextDays(n = 7) {
+  const t = tk(), base = Date.UTC(t.y, t.mo - 1, t.d), out = [];
+  for (let i = 0; i < 14 && out.length < n; i++) {
+    const d = new Date(base + i * 86400000);
+    if (d.getUTCDay() === 0) continue;
+    out.push({ iso: d.toISOString().slice(0, 10), dow: DAYS[d.getUTCDay()], full: DAYS_FULL[d.getUTCDay()], day: d.getUTCDate(), today: i === 0 });
+  }
+  return out;
+}
+const fmtClock = sec => { sec = Math.max(0, Math.round(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60; return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`; };
+const fmtHuman = sec => { sec = Math.max(0, Math.round(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60); if (h > 0) return `${h} soat ${m} daq`; if (sec >= 60) return `${m} daq`; return `${sec} soniya`; };
+const hhmm = sec => `${pad(Math.floor(sec / 3600))}:${pad(Math.floor(sec % 3600 / 60))}`;
+
+/* ---------- yordamchilar ---------- */
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2500); }
+const hue = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+const avStyle = n => `background:linear-gradient(135deg,hsl(${hue(n)} 82% 58%),hsl(${(hue(n) + 55) % 360} 80% 48%))`;
+const ini = n => { const w = String(n).replace(/\(.*?\)/g, '').trim().split(/\s+/); return ((w[0] || '?').charAt(0) + (w[1] || '').charAt(0)).toUpperCase(); };
+const skel = (n = 3) => Array.from({ length: n }, () => '<div class="skel"></div>').join('');
+function countUp(el, to) {
+  const t0 = performance.now(), dur = 700;
+  (function f(t) { const k = Math.min((t - t0) / dur, 1); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); })(t0);
+}
+function burst(x, y, em = ['✨', '⭐', '💫', '🎉', '💎']) {
+  if (reduce || !S.fx) return;
+  for (let i = 0; i < 14; i++) {
+    const s = document.createElement('span'); s.className = 'bp'; s.textContent = em[i % em.length];
+    const a = Math.random() * Math.PI * 2, d = 50 + Math.random() * 90;
+    s.style.cssText = `left:${x}px;top:${y}px;--x:${Math.cos(a) * d}px;--y:${Math.sin(a) * d - 30}px;--r:${Math.random() * 360 - 180}deg`;
+    document.body.appendChild(s); setTimeout(() => s.remove(), 1000);
+  }
+}
+const centerOf = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+
+/* ---------- API ---------- */
+async function api(path, params) {
+  if (!tg || !tg.initData) throw new Error('tg');
+  const c = new AbortController(), to = setTimeout(() => c.abort(), 30000);
+  try {
+    const r = await fetch(path + '?' + new URLSearchParams(params), { headers: { 'X-Init-Data': tg.initData }, signal: c.signal });
+    if (!r.ok) throw new Error(String(r.status));
+    return await r.json();
+  } catch (e) { throw e.name === 'AbortError' ? new Error('timeout') : e; }
+  finally { clearTimeout(to); }
+}
+async function apiPost(path, body) {
+  if (!tg || !tg.initData) throw new Error('tg');
+  const c = new AbortController(), to = setTimeout(() => c.abort(), 20000);
+  try {
+    const r = await fetch(path, { method: 'POST', headers: { 'X-Init-Data': tg.initData, 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: c.signal });
+    let j = {}; try { j = await r.json(); } catch (e) {}
+    return { ok: r.ok, status: r.status, data: j };
+  } catch (e) { throw e.name === 'AbortError' ? new Error('timeout') : e; }
+  finally { clearTimeout(to); }
+}
+function errBox(box, e, retry) {
+  const m = { tg: 'Ilovani Telegram ichida oching.', 401: 'Sessiya eskirgan. Ilovani yopib, qayta oching.', 403: 'Siz botdan foydalanishdan chetlatilgansiz.', timeout: "Server javob bermadi (UWED sekin bo'lishi mumkin)." }[e.message] || 'Xatolik yuz berdi. Qayta urinib ko\'ring.';
+  box.innerHTML = `<div class="empty"><span class="em">⚠️</span>${esc(m)}${retry && e.message !== 'tg' ? '<br><br><button class="btn rip" data-retry>↻ Qayta urinish</button>' : ''}</div>`;
+  const b = box.querySelector('[data-retry]'); if (b) b.addEventListener('click', retry);
+}
+
+/* ================= FON: ZARRACHALAR ================= */
+const cv = $('fx'), cx = cv.getContext('2d');
+let FW = 0, FH = 0, PT = [], raf = 0, ptr = { x: -999, y: -999, on: false }, colA = '34,211,238';
+function hex2rgb(h) { h = h.replace('#', '').trim(); if (h.length === 3) h = h.split('').map(c => c + c).join(''); const n = parseInt(h, 16); return `${n >> 16},${(n >> 8) & 255},${n & 255}`; }
+function fxColor() { try { colA = hex2rgb(getComputedStyle(document.documentElement).getPropertyValue('--a2')); } catch (e) {} }
+function fxResize() {
+  const d = Math.min(window.devicePixelRatio || 1, 2);
+  FW = innerWidth; FH = innerHeight; cv.width = FW * d; cv.height = FH * d; cx.setTransform(d, 0, 0, d, 0, 0);
+  const n = Math.round(Math.min(54, FW * FH / 15000));
+  PT = Array.from({ length: n }, () => ({ x: Math.random() * FW, y: Math.random() * FH, vx: (Math.random() - .5) * .38, vy: (Math.random() - .5) * .38, r: Math.random() * 1.7 + .6 }));
+}
+function fxFrame() {
+  cx.clearRect(0, 0, FW, FH);
+  for (const p of PT) {
+    if (ptr.on) { const dx = ptr.x - p.x, dy = ptr.y - p.y, d = Math.hypot(dx, dy); if (d < 170 && d > 1) { p.vx += dx / d * .025; p.vy += dy / d * .025; } }
+    p.vx *= .995; p.vy *= .995;
+    const sp = Math.hypot(p.vx, p.vy); if (sp > 1.4) { p.vx *= 1.4 / sp; p.vy *= 1.4 / sp; }
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < -10) p.x = FW + 10; else if (p.x > FW + 10) p.x = -10;
+    if (p.y < -10) p.y = FH + 10; else if (p.y > FH + 10) p.y = -10;
+  }
+  for (let i = 0; i < PT.length; i++) {
+    const a = PT[i];
+    for (let j = i + 1; j < PT.length; j++) {
+      const b = PT[j], d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (d < 105) { cx.strokeStyle = `rgba(${colA},${(1 - d / 105) * .32})`; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.stroke(); }
+    }
+    if (ptr.on) { const d = Math.hypot(a.x - ptr.x, a.y - ptr.y); if (d < 150) { cx.strokeStyle = `rgba(255,255,255,${(1 - d / 150) * .5})`; cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(ptr.x, ptr.y); cx.stroke(); } }
+    cx.fillStyle = `rgba(${colA},.8)`; cx.beginPath(); cx.arc(a.x, a.y, a.r, 0, 6.2832); cx.fill();
+  }
+  raf = requestAnimationFrame(fxFrame);
+}
+function fxToggle() {
+  cancelAnimationFrame(raf); raf = 0; cx.clearRect(0, 0, FW, FH);
+  document.body.classList.toggle('lowfx', !S.fx);
+  if (S.fx && !reduce && !document.hidden) { fxResize(); raf = requestAnimationFrame(fxFrame); }
+}
+addEventListener('resize', () => { if (S.fx && !reduce) fxResize(); });
+document.addEventListener('visibilitychange', fxToggle);
+addEventListener('pointermove', e => { ptr.x = e.clientX; ptr.y = e.clientY; ptr.on = true; }, { passive: true });
+addEventListener('pointerdown', e => { ptr.x = e.clientX; ptr.y = e.clientY; ptr.on = true; }, { passive: true });
+addEventListener('pointerup', () => { ptr.on = false; });
+addEventListener('pointercancel', () => { ptr.on = false; });
+
+/* ---------- 3D qiyalik va ripple ---------- */
+let hot = null;
+function unhot() { if (hot) { hot.style.setProperty('--rx', '0deg'); hot.style.setProperty('--ry', '0deg'); hot.classList.remove('hot'); hot = null; } }
+document.addEventListener('pointermove', e => {
+  if (!S.fx || reduce) return;
+  const el = e.target.closest && e.target.closest('.tilt');
+  if (hot && hot !== el) unhot();
+  if (!el) return;
+  const r = el.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+  const k = Math.min(1, 300 / r.width);
+  el.style.setProperty('--rx', ((.5 - py) * 9 * k) + 'deg'); el.style.setProperty('--ry', ((px - .5) * 11 * k) + 'deg');
+  el.style.setProperty('--mx', (px * 100) + '%'); el.style.setProperty('--my', (py * 100) + '%');
+  el.classList.add('hot'); hot = el;
+}, { passive: true });
+['pointerup', 'pointercancel'].forEach(n => document.addEventListener(n, () => setTimeout(unhot, 160), { passive: true }));
+document.addEventListener('pointerdown', e => {
+  const el = e.target.closest && e.target.closest('.rip'); if (!el) return;
+  const r = el.getBoundingClientRect(), s = document.createElement('span'), d = Math.max(r.width, r.height) * 2;
+  s.className = 'ripple'; s.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX - r.left - d / 2}px;top:${e.clientY - r.top - d / 2}px`;
+  el.appendChild(s); setTimeout(() => s.remove(), 750);
+}, { passive: true });
+
+/* ================= NAVIGATSIYA ================= */
+const TABS = ['home', 'search', 'rooms', 'me'];
+let curTab = 'home', curView = 'home', stack = [], sheetOpen = false, roomsInit = false;
+function showView(v) {
+  document.querySelectorAll('.view').forEach(x => x.classList.remove('on'));
+  $('v-' + v).classList.add('on'); curView = v;
+  $('scroll').scrollTo({ top: 0 }); syncBack();
+}
+function openTab(t) {
+  curTab = t; stack = []; showView(t);
+  $('nav').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  $('nav').querySelector('.ind').style.setProperty('--i', TABS.indexOf(t));
+  hapSel();
+  if (t === 'rooms' && !roomsInit) initRooms();
+  if (t === 'me') renderMe();
+  if (t === 'search') renderRecent();
+}
+function pushView(v) { stack.push(curView); showView(v); }
+function goBack() {
+  if (sheetOpen) { closeSheet(); return; }
+  if (stack.length) { showView(stack.pop()); hapSel(); }
+}
+function syncBack() {
+  try { (sheetOpen || stack.length) ? tg.BackButton.show() : tg.BackButton.hide(); } catch (e) {}
+}
+try { tg.BackButton.onClick(goBack); } catch (e) {}
+$('nav').querySelectorAll('button').forEach(b => b.addEventListener('click', () => openTab(b.dataset.t)));
+
+/* ================= BOTTOM SHEET ================= */
+function openSheet(html) {
+  $('sheetBody').innerHTML = html; $('sheet').style.transform = '';
+  $('sheet').classList.add('on'); $('sheetBg').classList.add('on'); sheetOpen = true; $('sheet').scrollTop = 0; syncBack();
+}
+function closeSheet() { $('sheet').classList.remove('on'); $('sheetBg').classList.remove('on'); $('sheet').style.transform = ''; sheetOpen = false; syncBack(); }
+$('sheetBg').addEventListener('click', closeSheet);
+(function dragSheet() {
+  let y0 = 0, dy = 0, on = false; const sh = $('sheet'), g = $('grab');
+  g.addEventListener('pointerdown', e => { on = true; y0 = e.clientY; dy = 0; sh.style.transition = 'none'; g.setPointerCapture(e.pointerId); });
+  g.addEventListener('pointermove', e => { if (!on) return; dy = Math.max(0, e.clientY - y0); sh.style.transform = `translateY(${dy}px)`; });
+  const end = () => { if (!on) return; on = false; sh.style.transition = ''; if (dy > 90) closeSheet(); else sh.style.transform = ''; };
+  g.addEventListener('pointerup', end); g.addEventListener('pointercancel', end);
+})();
+
+async function openRoom(q, date) {
+  hap('light');
+  openSheet(`<div class="sh-h"><div class="ri">🚪</div><div><b>${esc(q)}</b><small>Yuklanmoqda...</small></div></div>${skel(3)}`);
+  const load = async () => {
+    try {
+      const d = await api('/api/room', { q, date: date || tk().iso });
+      if (!d.found || !d.known) { $('sheetBody').innerHTML = `<div class="empty"><span class="em">❔</span>${esc(q)} UWED tizimida topilmadi.</div>`; return; }
+      const t = tk(), isToday = d.date === t.iso;
+      let now = null;
+      if (isToday) now = d.paras.find(p => t.secs >= toSec(p.start) && t.secs <= toSec(p.end)) || null;
+      const st = !isToday ? '' : now ? (now.busy ? '<span class="sh-st b">HOZIR BAND</span>' : '<span class="sh-st f">HOZIR BO\'SH</span>') : '<span class="sh-st f">DARS VAQTI EMAS</span>';
+      const rows = d.paras.map(p => {
+        const cur = now && now.para === p.para;
+        return `<div class="tr ${cur ? 'cur' : ''}"><span class="dt ${p.busy ? 'b' : 'f'}"></span><div class="tx"><b>${p.para}-para</b> ${p.busy ? '· ' + esc(p.title) : "· bo'sh"}${p.busy && p.instructor ? `<small>👨‍🏫 ${esc(p.instructor)}</small>` : ''}</div><span class="tm">${p.start}–${p.end}</span></div>`;
+      }).join('');
+      const free = d.paras.filter(p => !p.busy).length;
+      $('sheetBody').innerHTML = `<div class="sh-h"><div class="ri">🚪</div><div><b>${esc(d.room)}</b><small>${esc(d.date)} · ${free} ta bo'sh para</small></div>${st}</div><div class="glass" style="border-radius:22px">${rows}</div>${d.others && d.others.length ? `<div class="chips" style="margin-top:14px">${d.others.map(o => `<button class="chip" data-room="${esc(o)}">${esc(o)}</button>`).join('')}</div>` : ''}`;
+      $('sheetBody').querySelectorAll('[data-room]').forEach(b => b.addEventListener('click', () => openRoom(b.dataset.room, date)));
+    } catch (e) { errBox($('sheetBody'), e, load); }
+  };
+  load();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-room-open]');
+  if (b) { e.stopPropagation(); openRoom(b.dataset.roomOpen, b.dataset.date || undefined); }
+});
+
+/* ================= BOSH: JONLI HALQA ================= */
+const CIRC = 590.62;
+(function buildTicks() {
+  let h = ''; for (let i = 0; i < 60; i++) { const a = i / 60 * 2 * Math.PI - Math.PI / 2, r1 = 104, r2 = i % 5 === 0 ? 112 : 108; h += `<line class="tick" x1="${110 + Math.cos(a) * r1}" y1="${110 + Math.sin(a) * r1}" x2="${110 + Math.cos(a) * r2}" y2="${110 + Math.sin(a) * r2}"/>`; }
+  $('ticks').innerHTML = h;
+  $('pdots').innerHTML = PARAS.map(p => `<div class="pd" data-n="${p.n}"><b>${p.n}</b><small>${p.s}</small></div>`).join('');
+})();
+const tickEls = [...document.querySelectorAll('.tick')], pdEls = [...document.querySelectorAll('.pd')];
+function liveState(t) {
+  if (t.dow === 0) return { kind: 'sun', prog: 1 };
+  const s = t.secs;
+  for (let i = 0; i < PARAS.length; i++) {
+    const p = PARAS[i];
+    if (s >= p.ss && s <= p.es) return { kind: 'para', i, p, rem: p.es - s, prog: (s - p.ss) / (p.es - p.ss) };
+    const nx = PARAS[i + 1];
+    if (nx && s > p.es && s < nx.ss) return { kind: 'break', i: i + 1, next: nx, rem: nx.ss - s, prog: (s - p.es) / (nx.ss - p.es) };
+  }
+  if (s < PARAS[0].ss) return { kind: 'before', i: 0, next: PARAS[0], rem: PARAS[0].ss - s, prog: Math.max(0, (s - 21600) / (PARAS[0].ss - 21600)) };
+  return { kind: 'after', prog: 1 };
+}
+let lastKind = '';
+function tickLive() {
+  const t = tk(), L = liveState(t), prog = Math.min(1, Math.max(0, L.prog));
+  $('prg').style.strokeDashoffset = (CIRC * (1 - prog)).toFixed(2);
+  const ang = prog * 2 * Math.PI - Math.PI / 2;
+  $('head').setAttribute('cx', (110 + 94 * Math.cos(ang)).toFixed(2)); $('head').setAttribute('cy', (110 + 94 * Math.sin(ang)).toFixed(2));
+  const lit = Math.round(prog * 60); tickEls.forEach((el, i) => el.classList.toggle('on', i < lit));
+  const lab = $('lLabel'), tm = $('lTime'), sub = $('lSub');
+  if (L.kind === 'para') { lab.textContent = `${L.p.n}-para davom etmoqda`; tm.textContent = fmtClock(L.rem); tm.classList.remove('big'); sub.textContent = 'tugashiga qoldi'; }
+  else if (L.kind === 'break') { lab.textContent = 'Tanaffus'; tm.textContent = fmtClock(L.rem); sub.textContent = `${L.next.n}-para boshlanishiga`; }
+  else if (L.kind === 'before') { lab.textContent = 'Darslar boshlanishiga'; tm.textContent = fmtClock(L.rem); sub.textContent = `${L.next.s} da 1-para`; }
+  else if (L.kind === 'after') { lab.textContent = 'Bugungi darslar'; tm.innerHTML = '<span class="big">🌙</span>'; sub.textContent = 'tugadi · yaxshi dam oling'; }
+  else { lab.textContent = 'Yakshanba'; tm.innerHTML = '<span class="big">😴</span>'; sub.textContent = 'dam olish kuni'; }
+  pdEls.forEach((el, i) => {
+    const done = L.kind === 'after' || L.kind === 'sun' ? L.kind === 'after' : (L.kind === 'para' ? i < L.i : i < L.i);
+    el.className = 'pd' + (L.kind === 'para' && i === L.i ? ' act' : (L.kind === 'break' || L.kind === 'before') && i === L.i ? ' nxt' : done ? ' done' : '');
+  });
+  tickPin(t);
+}
+
+/* ================= BOSH: MENING JADVALIM ================= */
+let pin = ls.get('jidu_pin', null), pinData = null, pinLoading = false, pinSig = '';
+async function loadPin() {
+  if (!pin || pinLoading) return;
+  pinLoading = true; const t = tk();
+  try { const d = await api('/api/schedule', { code: pin.code, id: pin.id, date: t.iso }); pinData = { date: t.iso, lessons: d.lessons.map(l => ({ ...l, ss: toSec(l.start), es: toSec(l.end) })) }; }
+  catch (e) { pinData = { date: t.iso, err: e.message }; }
+  pinLoading = false; pinSig = ''; tickPin(tk());
+}
+function tickPin(t) {
+  const box = $('pin');
+  if (!pin) {
+    if (pinSig !== 'nopin') { pinSig = 'nopin'; box.innerHTML = `<button class="glass pn pn-cta tilt rip" style="width:100%;text-align:left" id="pinCta"><span class="ic">📌</span><span><b>Mening jadvalim</b><small>O'zingizni qo'shing — keyingi dars hisoblagichi shu yerda chiqadi</small></span></button>`; $('pinCta').addEventListener('click', () => { openTab('search'); toast('O\'zingizni toping va 📌 bosing'); setTimeout(() => $('q').focus(), 400); }); }
+    return;
+  }
+  if (!pinData) { if (pinSig !== 'load') { pinSig = 'load'; box.innerHTML = '<div class="skel" style="height:130px"></div>'; loadPin(); } return; }
+  if (pinData.date !== t.iso && !pinLoading) { pinData = null; return; }
+  if (pinData.err) { if (pinSig !== 'err') { pinSig = 'err'; box.innerHTML = `<div class="glass pn" id="pnErr"><div class="pn-who">📌 ${esc(pin.name)}</div><div class="lm">Jadvalni yuklab bo'lmadi. Bosib qayta urinib ko'ring.</div></div>`; $('pnErr').addEventListener('click', () => { pinData = null; pinSig = ''; }); } return; }
+  const s = t.secs, L = pinData.lessons;
+  const liveI = L.findIndex(l => s >= l.ss && s <= l.es), nextI = L.findIndex(l => l.ss > s);
+  const sig = liveI >= 0 ? 'live' + liveI : nextI >= 0 ? 'next' + nextI : L.length ? 'done' : 'none';
+  if (sig !== pinSig) {
+    pinSig = sig; let h = '';
+    const who = `<div class="pn-top">${liveI >= 0 ? '<span class="badge live">● HOZIR</span>' : nextI >= 0 ? '<span class="badge nx">KEYINGI</span>' : '<span class="badge nx">BUGUN</span>'}<span class="pn-who">📌 ${esc(pin.name)}</span></div>`;
+    if (liveI >= 0) { const l = L[liveI]; h = `${who}<h3>${esc(l.title)}</h3><div class="lm">🚪 ${esc(l.room)} · ⏱ ${esc(l.start)} – ${esc(l.end)}</div><div class="bar"><i id="pnBar"></i></div><div class="pn-foot"><span><b id="pnRem"></b> qoldi</span><span>${L.length - liveI - 1} ta dars keyin</span></div>`; }
+    else if (nextI >= 0) { const l = L[nextI]; h = `${who}<h3>${esc(l.title)}</h3><div class="lm">🚪 ${esc(l.room)} · ⏱ ${esc(l.start)} – ${esc(l.end)}</div><div class="pn-foot" style="margin-top:12px"><span>Boshlanishiga: <b id="pnRem"></b></span><span>${L.length - nextI} ta dars qoldi</span></div>`; }
+    else if (L.length) h = `${who}<h3>Bugungi darslar tugadi 🎉</h3><div class="lm">Jami ${L.length} ta dars bo'ldi. Ertangi jadvalni ko'rish uchun bosing.</div>`;
+    else h = `${who}<h3>Bugun darslar yo'q 🎈</h3><div class="lm">Dam oling yoki boshqa kunni ko'rish uchun bosing.</div>`;
+    box.innerHTML = `<div class="glass pn tilt rip" id="pnCard">${h}</div>`;
+    $('pnCard').addEventListener('click', () => { hap('light'); openPerson(pin); });
+  }
+  const rem = $('pnRem');
+  if (rem) {
+    if (liveI >= 0) { const l = L[liveI]; rem.textContent = fmtHuman(l.es - s); const bar = $('pnBar'); if (bar) bar.style.width = (Math.min(1, (s - l.ss) / (l.es - l.ss)) * 100).toFixed(1) + '%'; }
+    else if (nextI >= 0) rem.textContent = fmtHuman(L[nextI].ss - s);
+  }
+}
+
+/* ================= BOSH: BLOKLAR ================= */
+let ovBusy = false;
+async function loadOverview() {
+  if (ovBusy) return; ovBusy = true;
+  $('blks').innerHTML = ['A', 'B', 'D', 'F'].map(b => `<div class="glass blk"><svg viewBox="0 0 64 64"><circle class="t" cx="32" cy="32" r="26"/></svg><div><div class="lt">${b}</div><div class="bn">hisoblanmoqda...</div></div></div>`).join('');
+  $('ovNote').textContent = '';
+  try {
+    const d = await api('/api/overview', {});
+    $('blks').innerHTML = d.blocks.map((b, i) => {
+      const f = b.total ? b.free / b.total : 0;
+      return `<button class="glass blk tilt rip" data-b="${esc(b.block)}"><svg viewBox="0 0 64 64"><circle class="t" cx="32" cy="32" r="26"/><circle class="p ${f < .25 ? 'd' : f < .5 ? 'w' : ''}" cx="32" cy="32" r="26" data-f="${f.toFixed(3)}"/></svg><div><div class="lt">${esc(b.block)} blok</div><div class="bn"><b>${b.free}</b>/ ${b.total} bo'sh</div></div></button>`;
+    }).join('');
+    requestAnimationFrame(() => requestAnimationFrame(() => $('blks').querySelectorAll('.p').forEach(c => { c.style.strokeDashoffset = (163.4 * (1 - +c.dataset.f)).toFixed(1); })));
+    $('blks').querySelectorAll('.blk').forEach(el => el.addEventListener('click', () => { hap('light'); rb = el.dataset.b; rf = 'ALL'; if (roomsInit) { renderBlocks(); renderFloors(); loadRooms(); } openTab('rooms'); }));
+    fdSetBlocks(d.blocks.map(b => b.block));
+    $('ovNote').textContent = d.break ? "Hozir dars vaqti emas — barcha xonalar rasman bo'sh" : `${d.label} bo'yicha jonli ma'lumot`;
+  } catch (e) { errBox($('blks'), e, () => { ovBusy = false; loadOverview(); }); }
+  ovBusy = false;
+}
+$('ovRef').addEventListener('click', () => { hap('light'); loadOverview(); });
+$('gsBtn').addEventListener('click', () => { hap('light'); openTab('search'); setTimeout(() => $('q').focus(), 450); });
+
+/* ================= SEVIMLILAR ================= */
+const ICON = { s: '🎓', t: '👨‍🏫', g: '👥' }, LABEL = { s: 'Talaba', t: "O'qituvchi", g: 'Guruh' };
+const favs = () => ls.get('jidu_favs_v1', []);
+const isFav = (code, id) => favs().some(f => f.code === code && f.id === id);
+function favRow(f, i) { return `<button class="glass res tilt rip" data-fi="${i}"><span class="ri" style="${avStyle(f.name)}">${esc(ini(f.name))}</span><span class="rt"><b>${esc(f.name)}</b><small>${LABEL[f.code]}</small></span><i>›</i></button>`; }
+function bindFavs(box) { box.querySelectorAll('[data-fi]').forEach(el => el.addEventListener('click', () => { hap('light'); openPerson(favs()[+el.dataset.fi]); })); }
+function renderFavs() {
+  const a = favs();
+  $('favWrap').hidden = !a.length; $('favs').innerHTML = a.map(favRow).join(''); bindFavs($('favs'));
+}
+
+/* ================= QIDIRUV ================= */
+let sf = 'all', reqS = 0, qTimer = 0;
+const roomLike = q => /^[a-zA-Z]{1,2}[-\s]?\d{1,3}[a-zA-Z]?$/.test(q.trim());
+function renderRecent() {
+  const r = ls.get('jidu_recent', []);
+  $('recent').innerHTML = r.length && !$('q').value.trim() ? `<div class="sec" style="margin-top:6px"><span>So'nggi qidiruvlar</span><button id="clrRec">Tozalash</button></div><div class="rcent">${r.map(x => `<button class="chip" data-rq="${esc(x)}">🕘 ${esc(x)}</button>`).join('')}</div>` : '';
+  $('recent').querySelectorAll('[data-rq]').forEach(b => b.addEventListener('click', () => { $('q').value = b.dataset.rq; $('qx').hidden = false; runSearch(); }));
+  const c = $('clrRec'); if (c) c.addEventListener('click', () => { ls.set('jidu_recent', []); renderRecent(); });
+}
+document.querySelectorAll('#sfs .chip').forEach(c => c.addEventListener('click', () => {
+  sf = c.dataset.f; document.querySelectorAll('#sfs .chip').forEach(x => x.classList.toggle('on', x === c)); hapSel();
+  if ($('q').value.trim().length >= 2) runSearch();
+}));
+$('q').addEventListener('input', () => {
+  const v = $('q').value.trim(); $('qx').hidden = !v; clearTimeout(qTimer);
+  if (v.length < 2) { $('sres').innerHTML = ''; renderRecent(); return; }
+  $('recent').innerHTML = ''; if (v.length >= 3) qTimer = setTimeout(runSearch, 650);
+});
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter') { clearTimeout(qTimer); runSearch(); $('q').blur(); } });
+$('qx').addEventListener('click', () => { $('q').value = ''; $('qx').hidden = true; $('sres').innerHTML = ''; renderRecent(); $('q').focus(); });
+
+async function runSearch() {
+  clearTimeout(qTimer);
+  const q = $('q').value.trim().replace(/\s+/g, ' ');
+  if (q.length < 2) { toast('Kamida 2 ta belgi kiriting'); return; }
+  const my = ++reqS; $('recent').innerHTML = ''; $('sres').innerHTML = skel(3);
+  const rec = ls.get('jidu_recent', []).filter(x => x.toLowerCase() !== q.toLowerCase()); rec.unshift(q); ls.set('jidu_recent', rec.slice(0, 8));
+  ls.set('jidu_sc', (ls.get('jidu_sc', 0) || 0) + 1);
+  const codes = sf === 'all' ? ['s', 't', 'g'] : sf === 'r' ? [] : [sf];
+  const jobs = codes.map(c => api('/api/search', { code: c, q }).then(d => ({ c, list: d.results })));
+  if (sf === 'r' || (sf === 'all' && roomLike(q))) jobs.push(api('/api/room', { q, date: tk().iso }).then(d => ({ c: 'r', room: d })));
+  const res = await Promise.allSettled(jobs);
+  if (my !== reqS) return;
+  const ok = res.filter(r => r.status === 'fulfilled').map(r => r.value);
+  if (!ok.length) { errBox($('sres'), res[0].reason, runSearch); return; }
+  let h = '', n = 0, idx = [];
+  for (const c of ['r', 's', 't', 'g']) {
+    const r = ok.find(x => x.c === c); if (!r) continue;
+    if (c === 'r') {
+      if (r.room && r.room.found) {
+        const names = [r.room.room, ...(r.room.others || [])].filter(Boolean);
+        h += `<div class="grp">🚪 Xonalar <em>${names.length}</em></div>` + names.map(nm => `<button class="glass res tilt rip" data-room-open="${esc(nm)}"><span class="ri" style="background:linear-gradient(135deg,var(--a1),var(--a3))">🚪</span><span class="rt"><b>${esc(nm)}</b><small>Bugungi holatini ko'rish</small></span><i>›</i></button>`).join(''); n += names.length;
+      }
+    } else if (r.list.length) {
+      h += `<div class="grp">${ICON[c]} ${LABEL[c]} <em>${r.list.length}</em></div>`;
+      r.list.forEach(it => { idx.push({ code: c, id: it.id, name: it.name }); h += `<button class="glass res tilt rip" data-si="${idx.length - 1}"><span class="ri" style="${avStyle(it.name)}">${esc(ini(it.name))}</span><span class="rt"><b>${esc(it.name)}</b><small>${LABEL[c]}</small></span><i>›</i></button>`; });
+      n += r.list.length;
+    }
+  }
+  if (!n) { $('sres').innerHTML = `<div class="empty"><span class="em">🔍</span>Hech narsa topilmadi.<br><small>Familiyasini yoki ismining bir qismini yozib ko'ring.<br>O' va G' dagi belgi muhim emas.</small></div>`; return; }
+  $('sres').innerHTML = h;
+  $('sres').querySelectorAll('[data-si]').forEach(el => el.addEventListener('click', () => { hap('light'); openPerson(idx[+el.dataset.si]); }));
+}
+
+/* ================= SHAXS ================= */
+let cur = null, curDate = null, reqL = 0, curLessons = [], curDayFull = '';
+function openPerson(p) {
+  if (!p) return;
+  cur = { code: p.code, id: String(p.id), name: p.name };
+  if (curView !== 'person') pushView('person'); else showView('person');
+  $('pAv').setAttribute('style', avStyle(p.name)); $('pAv').textContent = ini(p.name);
+  $('pName').textContent = p.name; $('pType').textContent = LABEL[p.code];
+  syncActs();
+  const days = nextDays(7); curDate = days[0].iso;
+  renderDates($('pdates'), days, curDate, iso => { curDate = iso; loadLessons(); });
+  loadLessons();
+}
+function syncActs() {
+  const f = isFav(cur.code, cur.id), pn = pin && pin.code === cur.code && pin.id === cur.id;
+  $('favBtn').textContent = f ? '⭐ Sevimli' : '☆ Sevimli'; $('favBtn').classList.toggle('on', f);
+  $('pinBtn').textContent = pn ? '📌 Mening jadvalim ✓' : '📌 Mening jadvalim'; $('pinBtn').classList.toggle('on', pn);
+}
+$('favBtn').addEventListener('click', () => {
+  if (!cur) return;
+  let a = favs();
+  if (isFav(cur.code, cur.id)) { a = a.filter(f => !(f.code === cur.code && f.id === cur.id)); toast('Sevimlilardan olib tashlandi'); }
+  else { a.unshift({ code: cur.code, id: cur.id, name: cur.name }); toast('⭐ Sevimlilarga saqlandi'); burst(...centerOf($('favBtn'))); hapOk(); }
+  ls.set('jidu_favs_v1', a.slice(0, 20)); syncActs(); renderFavs();
+});
+$('pinBtn').addEventListener('click', () => {
+  if (!cur) return;
+  if (pin && pin.code === cur.code && pin.id === cur.id) { pin = null; ls.set('jidu_pin', null); toast('Jadval olib tashlandi'); }
+  else { pin = { code: cur.code, id: cur.id, name: cur.name }; ls.set('jidu_pin', pin); toast('📌 Bosh sahifaga mahkamlandi'); burst(...centerOf($('pinBtn')), ['📌', '✨', '⭐', '💫']); hapOk(); }
+  pinData = null; pinSig = ''; syncActs();
+});
+$('shBtn').addEventListener('click', () => {
+  if (!cur || !curLessons.length) { toast("Ulashish uchun darslar yo'q"); return; }
+  const txt = `📅 ${cur.name} — ${curDayFull} (${curDate})\n\n` + curLessons.map(l => `${l.para}-para ${l.start}–${l.end}\n📚 ${l.title}\n🚪 ${l.room}`).join('\n\n');
+  hap('medium');
+  const url = 'https://t.me/share/url?url=&text=' + encodeURIComponent(txt);
+  try { tg.openTelegramLink(url); } catch (e) { window.open(url, '_blank'); }
+});
+function renderDates(box, days, sel, onPick) {
+  box.innerHTML = days.map(d => `<button class="dchip rip ${d.iso === sel ? 'on' : ''}" data-d="${d.iso}"><small>${d.today ? 'Bugun' : d.dow}</small><b>${d.day}</b></button>`).join('');
+  box.querySelectorAll('.dchip').forEach(el => el.addEventListener('click', () => { box.querySelectorAll('.dchip').forEach(x => x.classList.remove('on')); el.classList.add('on'); hapSel(); onPick(el.dataset.d); }));
+}
+async function loadLessons() {
+  const my = ++reqL; $('lessons').innerHTML = skel(3); $('psumm').innerHTML = '';
+  try {
+    const d = await api('/api/schedule', { code: cur.code, id: cur.id, date: curDate });
+    if (my !== reqL) return;
+    const L = d.lessons.map(l => ({ ...l, ss: toSec(l.start), es: toSec(l.end) })); curLessons = L;
+    const dt = new Date(curDate + 'T00:00:00Z'); curDayFull = DAYS_FULL[dt.getUTCDay()];
+    if (!L.length) { $('lessons').innerHTML = '<div class="empty"><span class="em">🎉</span>Bu kunda darslar yo\'q.<br>Dam oling!</div>'; return; }
+    const t = tk(), isToday = d.date === t.iso, s = t.secs;
+    const mins = L.reduce((a, l) => a + (l.es - l.ss) / 60, 0);
+    $('psumm').innerHTML = `<div class="summ"><div class="glass sm rise" style="--d:0"><b>${L.length}</b><small>ta dars</small></div><div class="glass sm rise" style="--d:1"><b>${L[0].start}</b><small>boshlanishi</small></div><div class="glass sm rise" style="--d:2"><b>${L[L.length - 1].end}</b><small>tugashi</small></div><div class="glass sm rise" style="--d:3"><b>${(mins / 60).toFixed(1)}</b><small>soat</small></div></div>`;
+    let h = '', nowShown = false;
+    L.forEach((l, i) => {
+      const prev = L[i - 1];
+      if (isToday && !nowShown && s < l.ss && (!prev || s > prev.es)) { h += `<div class="nowline">HOZIR · ${hhmm(s)}</div>`; nowShown = true; }
+      if (prev) { const g = l.ss - prev.es; if (g > 20 * 60) h += `<div class="gap">${g >= 4800 ? '🪟 Oyna' : '☕ Tanaffus'} · ${fmtHuman(g)}</div>`; }
+      const live = isToday && s >= l.ss && s <= l.es, past = isToday && s > l.es;
+      const pn = /^[1-7]$/.test(l.para) ? l.para : '1';
+      const room = l.room && l.room !== "Noma'lum" ? `<button class="rbtn" data-room-open="${esc(l.room)}" data-date="${esc(curDate)}">🚪 ${esc(l.room)}</button>` : '🚪 —';
+      h += `<div class="glass lesson tilt ${live ? 'live' : ''} ${past ? 'past' : ''} rise" style="--d:${Math.min(i, 8)}"><div class="pb p${pn}">${esc(l.para)}<small>para</small></div><div class="lb"><div class="lt">${esc(l.title)}</div><div class="lm">⏱ ${esc(l.start)} – ${esc(l.end)} &nbsp;·&nbsp; ${room}</div>${l.topic ? `<div class="lm">📝 ${esc(l.topic)}</div>` : ''}${l.instructor && cur.code !== 't' ? `<div class="lm">👨‍🏫 ${esc(l.instructor)}</div>` : ''}<div class="tags">${l.type ? `<span class="tag">📖 ${esc(l.type)}</span>` : ''}${l.format ? `<span class="tag">🖥 ${esc(l.format)}</span>` : ''}${l.groups ? `<span class="tag">👥 ${esc(l.groups)}</span>` : ''}</div>${live ? `<div class="bar lbar"><i style="width:${(Math.min(1, (s - l.ss) / (l.es - l.ss)) * 100).toFixed(0)}%"></i></div>` : ''}</div></div>`;
+    });
+    if (isToday && !nowShown && s > L[L.length - 1].es) h += `<div class="nowline">HOZIR · ${hhmm(s)} · darslar tugadi</div>`;
+    $('lessons').innerHTML = h;
+    requestAnimationFrame(() => $('lessons').querySelectorAll('.lbar i').forEach(b => { b.style.transition = 'width 1.2s cubic-bezier(.2,.9,.25,1)'; }));
+  } catch (e) { if (my === reqL) errBox($('lessons'), e, loadLessons); }
+}
+
+/* ================= XONALAR ================= */
+let structure = {}, rb = 'A', rf = 'ALL', rd = null, rp = 'now', reqR = 0;
+async function initRooms() {
+  roomsInit = true;
+  try { structure = (await api('/api/structure', {})).blocks; }
+  catch (e) { errBox($('roomsOut'), e, () => { roomsInit = false; initRooms(); }); roomsInit = false; return; }
+  if (!structure[rb]) rb = Object.keys(structure)[0] || 'A';
+  const days = nextDays(7); rd = days[0].iso;
+  renderDates($('rdates'), days, rd, iso => { rd = iso; if (rp === 'now' && rd !== tk().iso) { rp = '1'; renderParas(); } loadRooms(); });
+  renderBlocks(); renderFloors(); renderParas(); loadRooms();
+}
+function chipRow(box, items, sel, onPick) {
+  box.innerHTML = items.map(([v, l]) => `<button class="chip rip ${v === sel ? 'on' : ''}" data-v="${esc(v)}">${esc(l)}</button>`).join('');
+  box.querySelectorAll('.chip').forEach(el => el.addEventListener('click', () => { hapSel(); onPick(el.dataset.v); }));
+}
+function renderBlocks() { chipRow($('blocks'), Object.keys(structure).map(b => [b, b + ' blok']), rb, v => { rb = v; rf = 'ALL'; renderBlocks(); renderFloors(); loadRooms(); }); }
+function renderFloors() { chipRow($('floors'), [['ALL', 'Hammasi'], ...(structure[rb] || []).map(f => [f, f + '-qavat'])], rf, v => { rf = v; renderFloors(); loadRooms(); }); }
+function renderParas() { chipRow($('paras'), [['now', '⚡ Hozir'], ...PARAS.map(p => [String(p.n), p.n + '-para'])], rp, v => { rp = v; if (v === 'now' && rd !== tk().iso) { rd = tk().iso; renderDates($('rdates'), nextDays(7), rd, iso => { rd = iso; loadRooms(); }); } renderParas(); loadRooms(); }); }
+async function loadRooms() {
+  const my = ++reqR; $('roomsOut').innerHTML = skel(3);
+  try {
+    const d = await api('/api/rooms', { block: rb, floor: rf, date: rd, para: rp });
+    if (my !== reqR) return;
+    if (d.break) { $('roomsOut').innerHTML = `<div class="empty"><span class="em">☕</span>Hozir (${esc(d.time)}) dars vaqti emas.<br>Barcha xonalar rasman bo'sh.</div>`; return; }
+    const total = d.free.length + d.busy.length, pct = total ? d.free.length / total * 100 : 0;
+    let h = `<div class="stats"><div class="glass stat f tilt"><b data-n="${d.free.length}">0</b><span>🟢 BO'SH</span></div><div class="glass stat b tilt"><b data-n="${d.busy.length}">0</b><span>🔴 BAND</span></div></div><div class="split"><i data-w="${pct.toFixed(1)}"></i></div><div class="lm" style="text-align:center;margin:0 0 16px">⏰ ${esc(d.label)} · ${esc(d.date)}${d.unknown ? ` · ${d.unknown} ta xona topilmadi` : ''}</div>`;
+    if (d.free.length) {
+      const by = {}; d.free.forEach(r => (by[r.floor] = by[r.floor] || []).push(r.room));
+      Object.keys(by).sort().forEach(f => { h += `<div class="fl"><h4>${f}-QAVAT · ${by[f].length} TA</h4><div class="pills">${by[f].map((r, i) => `<button class="pill" style="animation-delay:${Math.min(i, 20) * 28}ms" data-room-open="${esc(r)}" data-date="${esc(d.date)}">${esc(r)}</button>`).join('')}</div></div>`; });
+    } else h += '<div class="empty"><span class="em">😕</span>Barcha xonalar band</div>';
+    if (d.busy.length) {
+      h += '<div class="sec"><span>🔴 Band xonalar</span></div>';
+      h += d.busy.map(b => `<button class="glass bz tilt rip" data-room-open="${esc(b.room)}" data-date="${esc(d.date)}"><b>${esc(b.room)}</b><div class="lm">📚 ${esc(b.title)}</div><div class="lm">👨‍🏫 ${esc(b.instructor)}${b.end ? ` · ⏰ ${esc(b.end)} gacha` : ''}</div>${b.groups ? `<div class="lm">👥 ${esc(b.groups)}</div>` : ''}</button>`).join('');
+    }
+    $('roomsOut').innerHTML = h;
+    $('roomsOut').querySelectorAll('[data-n]').forEach(el => countUp(el, +el.dataset.n));
+    requestAnimationFrame(() => requestAnimationFrame(() => { const i = $('roomsOut').querySelector('.split i'); if (i) i.style.width = i.dataset.w + '%'; }));
+  } catch (e) { if (my === reqR) errBox($('roomsOut'), e, loadRooms); }
+}
+$('rq').addEventListener('keydown', e => { if (e.key === 'Enter') { const q = $('rq').value.trim(); if (q) { $('rq').blur(); openRoom(q); } } });
+
+/* ================= PROFIL ================= */
+const user = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+function setAvatar(el) {
+  if (user && user.photo_url) el.innerHTML = '<img src="' + esc(user.photo_url) + '" alt="">';
+  else el.textContent = ((user && user.first_name) || '🎓').charAt(0).toUpperCase();
+}
+function renderMe() {
+  const name = user ? [user.first_name, user.last_name].filter(Boolean).join(' ') : 'Foydalanuvchi';
+  $('mName').textContent = name;
+  $('mUn').textContent = user && user.username ? '@' + user.username : '';
+  $('mBd').innerHTML = [user && user.is_premium ? '<span>💎 Premium</span>' : '', user ? `<span>ID ${esc(user.id)}</span>` : '', user && user.language_code ? `<span>${esc(user.language_code.toUpperCase())}</span>` : ''].join('');
+  $('stS').textContent = ls.get('jidu_st', { n: 1 }).n; $('stF').textContent = favs().length; $('stQ').textContent = ls.get('jidu_sc', 0) || 0;
+  $('swHap').classList.toggle('on', S.hap); $('swFx').classList.toggle('on', S.fx);
+  document.querySelectorAll('.th').forEach(b => b.classList.toggle('on', b.dataset.th === S.theme));
+  const a = favs(); $('meFavWrap').hidden = !a.length; $('meFavs').innerHTML = a.map(favRow).join(''); bindFavs($('meFavs'));
+}
+document.querySelectorAll('.th').forEach(b => b.addEventListener('click', () => { applyTheme(b.dataset.th); hapOk(); burst(...centerOf(b)); }));
+$('tHap').addEventListener('click', () => { S.hap = !S.hap; saveS(); $('swHap').classList.toggle('on', S.hap); hap('medium'); });
+$('tFx').addEventListener('click', () => { S.fx = !S.fx; saveS(); $('swFx').classList.toggle('on', S.fx); fxToggle(); hap('medium'); });
+$('resetBtn').addEventListener('click', () => {
+  ['jidu_s', 'jidu_pin', 'jidu_favs_v1', 'jidu_recent', 'jidu_sc'].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  Object.assign(S, { theme: 'aurora', hap: true, fx: true }); pin = null; pinData = null; pinSig = '';
+  applyTheme('aurora'); fxToggle(); renderFavs(); renderMe(); toast('♻️ Sozlamalar tiklandi'); hapOk();
+});
+$('avBtn').addEventListener('click', e => {
+  const order = ['aurora', 'sunset', 'emerald', 'royal']; applyTheme(order[(order.indexOf(S.theme) + 1) % order.length]);
+  burst(e.clientX, e.clientY); hap('medium');
+});
+
+/* ================= XONA TOPUVCHI ================= */
+const fd = Object.assign({ b: 'A', p: 'auto' }, ls.get('jidu_fd', {}));
+let fdBlocks = ['A', 'B', 'D', 'F'], reqFd = 0, fdState = null, fdIv = 0;
+const fdSave = () => ls.set('jidu_fd', { b: fd.b, p: fd.p });
+const nextWork = () => nextDays(3).find(d => !d.today);
+function relName(d) {
+  const t = tk(), tm = new Date(Date.UTC(t.y, t.mo - 1, t.d) + 86400000).toISOString().slice(0, 10);
+  return d.iso === tm ? 'ertaga' : d.full.toLowerCase();
+}
+function slotFor(sel) {
+  const t = tk(), working = t.dow !== 0;
+  if (sel === 'auto') {
+    if (working) for (const p of PARAS) if (t.secs <= p.es) return { iso: t.iso, para: p.n, rel: 'bugun', live: t.secs >= p.ss };
+    const d = nextWork(); return { iso: d.iso, para: 1, rel: relName(d), live: false };
+  }
+  const n = +sel, P = PARAS[n - 1];
+  if (working && t.secs <= P.es) return { iso: t.iso, para: n, rel: 'bugun', live: t.secs >= P.ss };
+  const d = nextWork(); return { iso: d.iso, para: n, rel: relName(d), live: false };
+}
+function fdSetBlocks(list) {
+  if (!list || !list.length) return;
+  fdBlocks = list; if (!fdBlocks.includes(fd.b)) fd.b = fdBlocks[0];
+  renderFd();
+}
+function fdReset() { ++reqFd; clearInterval(fdIv); fdState = null; $('fdOut').innerHTML = ''; $('fdGo').disabled = false; $('fdGo').innerHTML = "✨ Bo'sh xonani top"; }
+function renderFd() {
+  chipRow($('fdBlocks'), fdBlocks.map(b => [b, b + ' blok']), fd.b, v => { fd.b = v; fdSave(); fdReset(); renderFd(); });
+  chipRow($('fdParas'), [['auto', '⚡ Avto'], ...PARAS.map(p => [String(p.n), p.n + '-para'])], fd.p, v => { fd.p = v; fdSave(); fdReset(); renderFd(); });
+  const s = slotFor(fd.p), P = PARAS[s.para - 1];
+  $('fdHint').innerHTML = `🕒 <b>${s.para}-para</b> · ${P.s}–${P.e} · ${esc(s.rel)}${s.live ? ' · <b>hozir davom etmoqda</b>' : ''}${fd.p === 'auto' ? ' <span style="opacity:.7">(eng yaqin para)</span>' : ''}`;
+}
+async function fdRun() {
+  const my = ++reqFd, s = slotFor(fd.p), blk = fd.b; clearInterval(fdIv); hap('medium');
+  $('fdGo').disabled = true; $('fdGo').innerHTML = '<span class="spinr"></span>&nbsp; Qidirilmoqda...';
+  $('fdOut').innerHTML = `<div class="fd-load"><div class="spinr big"></div><div><b>${esc(blk)} blok · ${s.para}-para</b><small>UWED jadvali tekshirilmoqda. Birinchi marta 10–20 soniya olishi mumkin.</small></div></div>`;
+  try {
+    const d = await api('/api/rooms', { block: blk, floor: 'ALL', date: s.iso, para: String(s.para) });
+    if (my !== reqFd) return;
+    fdState = { blk, s, free: d.free || [], busy: (d.busy || []).length, unknown: d.unknown || 0, last: null };
+    fdState.free.length ? fdShowPick() : fdShowNone();
+  } catch (e) { if (my === reqFd) errBox($('fdOut'), e, fdRun); }
+  finally { if (my === reqFd) { $('fdGo').disabled = false; $('fdGo').innerHTML = "✨ Bo'sh xonani top"; } }
+}
+function fdShowNone() {
+  const st = fdState, others = fdBlocks.filter(b => b !== st.blk);
+  $('fdOut').innerHTML = `<div class="glass pick none"><span class="em">😕</span><b>${esc(st.blk)} blokda ${st.s.para}-parada bo'sh xona topilmadi</b><small>${st.busy} ta xona band${st.unknown ? ` · ${st.unknown} tasi UWED'da topilmadi` : ''}. Boshqa blokni sinab ko'ring:</small><div class="chips">${others.map(b => `<button class="chip rip" data-fb="${esc(b)}">${esc(b)} blok</button>`).join('')}</div></div>`;
+  $('fdOut').querySelectorAll('[data-fb]').forEach(el => el.addEventListener('click', () => { hapSel(); fd.b = el.dataset.fb; fdSave(); renderFd(); fdRun(); }));
+}
+function fdShowPick() {
+  const st = fdState, s = st.s, P = PARAS[s.para - 1];
+  $('fdOut').innerHTML = `<div class="glass pick" id="pick"><div class="pk-top">🎯 SIZGA TAVSIYA</div><div class="pk-room" id="pkRoom">—</div><div class="pk-meta" id="pkMeta"></div><div class="pk-stat">${st.free.length} ta bo'sh xonadan biri · ${esc(st.blk)} blok · ${s.para}-para (${P.s}–${P.e}) · ${esc(s.rel)}${st.unknown ? ` · ${st.unknown} ta xona topilmadi` : ''}</div><div class="pk-acts"><button class="act rip" id="pkAgain">🎲 Boshqasi</button><button class="act rip" id="pkSched">📅 Jadvali</button><button class="act rip" id="pkAll">📋 Hammasi (${st.free.length})</button></div><div class="pk-list" id="pkList" hidden></div></div>`;
+  $('pkAgain').addEventListener('click', fdPick);
+  $('pkSched').addEventListener('click', () => { if (st.last) openRoom(st.last.room, s.iso); });
+  $('pkAll').addEventListener('click', () => {
+    const box = $('pkList'); hapSel();
+    if (!box.hidden) { box.hidden = true; $('pkAll').textContent = `📋 Hammasi (${st.free.length})`; return; }
+    const by = {}; st.free.forEach(r => (by[r.floor] = by[r.floor] || []).push(r.room));
+    box.innerHTML = Object.keys(by).sort().map(f => `<div class="fl"><h4>${esc(f)}-QAVAT · ${by[f].length} TA</h4><div class="pills">${by[f].map(r => `<button class="pill" data-room-open="${esc(r)}" data-date="${esc(s.iso)}">${esc(r)}</button>`).join('')}</div></div>`).join('');
+    box.hidden = false; $('pkAll').textContent = '🔽 Yopish';
+  });
+  fdPick();
+  $('pick').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function fdPick() {
+  const st = fdState; if (!st || !st.free.length) return;
+  clearInterval(fdIv);
+  let r; const L = st.free;
+  if (L.length === 1) r = L[0]; else do { r = L[Math.floor(Math.random() * L.length)]; } while (st.last && r.room === st.last.room);
+  st.last = r;
+  const el = $('pkRoom'), P = PARAS[st.s.para - 1];
+  $('pkMeta').textContent = '';
+  const land = () => {
+    el.textContent = r.room; el.classList.remove('spin', 'land'); void el.offsetWidth; el.classList.add('land');
+    $('pkMeta').textContent = `${st.blk} blok · ${r.floor}-qavat`;
+    hapOk(); burst(...centerOf(el), ['✨', '🟢', '⭐', '💫']);
+  };
+  if (reduce || L.length === 1) { land(); return; }
+  el.classList.add('spin'); let n = 0;
+  fdIv = setInterval(() => { el.textContent = L[Math.floor(Math.random() * L.length)].room; hapSel(); if (++n >= 11) { clearInterval(fdIv); land(); } }, 70);
+}
+$('fdGo').addEventListener('click', fdRun);
+$('goFinder').addEventListener('click', () => { hap('light'); openTab('home'); setTimeout(() => $('finder').scrollIntoView({ behavior: 'smooth', block: 'start' }), 480); });
+
+/* ================= ADMINGA MUROJAAT / BOTGA QAYTISH ================= */
+const CT_KINDS = [['savol', '💬 Savol'], ['xato', '🐞 Xatolik'], ['taklif', '💡 Taklif']];
+let ctKind = 'savol', ctBusy = false;
+function openContact() {
+  hap('light'); ctKind = 'savol';
+  openSheet(`<div class="sh-h"><div class="ri">💬</div><div><b>Adminga murojaat</b><small>Javob shu bot chatiga keladi</small></div></div><div class="chips" id="ctKinds"></div><textarea class="ta" id="ctText" maxlength="1000" placeholder="Savol, taklif yoki xatolik haqida yozing..."></textarea><div class="ct-foot" id="ctFoot"><span>Kamida 5 ta belgi</span><span id="ctCnt">0 / 1000</span></div><button class="btn full rip" id="ctSend">📨 Yuborish</button>`);
+  const ta = $('ctText'); ta.value = ls.get('jidu_draft', '');
+  const upd = () => { const n = ta.value.length; $('ctCnt').textContent = n + ' / 1000'; $('ctFoot').classList.toggle('warn', n > 900); };
+  ta.addEventListener('input', () => { upd(); ls.set('jidu_draft', ta.value); });
+  const kinds = () => chipRow($('ctKinds'), CT_KINDS, ctKind, v => { ctKind = v; kinds(); });
+  kinds(); upd();
+  $('ctSend').addEventListener('click', sendContact);
+}
+async function sendContact() {
+  if (ctBusy) return;
+  const text = $('ctText').value.trim(), btn = $('ctSend');
+  if (text.length < 5) { toast('Kamida 5 ta belgi yozing'); $('ctText').focus(); return; }
+  ctBusy = true; btn.disabled = true; btn.innerHTML = '<span class="spinr"></span>&nbsp; Yuborilmoqda...';
+  const fail = msg => { toast(msg); btn.disabled = false; btn.textContent = '📨 Yuborish'; };
+  try {
+    const r = await apiPost('/api/contact', { text, kind: ctKind });
+    if (r.ok) {
+      ls.set('jidu_draft', ''); hapOk();
+      $('sheetBody').innerHTML = `<div class="sent"><svg viewBox="0 0 104 104"><circle class="c" cx="52" cy="52" r="48"/><path class="k" d="M30 54l15 15 29-32"/></svg><h3>Yuborildi!</h3><p>Murojaatingiz adminga yetdi. Javob shu bot chatiga keladi.</p><button class="btn full rip" id="ctDone">Yopish</button></div>`;
+      $('ctDone').addEventListener('click', closeSheet); burst(window.innerWidth / 2, window.innerHeight * .55, ['✨', '📨', '💫', '🎉']);
+    } else fail(r.status === 401 ? 'Sessiya eskirgan. Ilovani yopib, qayta oching.' : r.status === 403 ? 'Siz botdan foydalanishdan chetlatilgansiz.' : (r.data && r.data.error) || "Yuborib bo'lmadi");
+  } catch (e) { fail(e.message === 'tg' ? 'Ilovani Telegram ichida oching.' : "Tarmoq xatosi. Qayta urinib ko'ring."); }
+  ctBusy = false;
+}
+function toBot() { hap('medium'); try { tg.close(); } catch (e) { toast("Telegram ichida ochilganda ishlaydi"); } }
+['ctBtn', 'ctBtn2', 'tCt'].forEach(id => $(id).addEventListener('click', openContact));
+['botBtn', 'tBot'].forEach(id => $(id).addEventListener('click', toBot));
+
+/* ================= ISHGA TUSHIRISH ================= */
+(function boot() {
+  const t = tk();
+  const g = t.h < 5 ? 'Xayrli tun' : t.h < 12 ? 'Xayrli tong' : t.h < 18 ? 'Xayrli kun' : 'Xayrli kech';
+  $('greet').textContent = g + ' 👋';
+  $('uname').textContent = (user && user.first_name) || "Do'stim";
+  setAvatar($('ava')); setAvatar($('ava2'));
+  // kunlik seriya
+  let st = ls.get('jidu_st', { last: '', n: 0 });
+  if (st.last !== t.iso) {
+    const y = new Date(Date.UTC(t.y, t.mo - 1, t.d) - 86400000).toISOString().slice(0, 10);
+    st = { last: t.iso, n: st.last === y ? st.n + 1 : 1 }; ls.set('jidu_st', st);
+  }
+  $('streakChip').textContent = '🔥 ' + st.n;
+  applyTheme(S.theme); fxToggle();
+  renderFavs(); renderFd(); tickLive(); setInterval(tickLive, 1000);
+  setInterval(() => { if (curView === 'home' && !fdState && !document.hidden) renderFd(); }, 30000);
+  loadOverview(); setInterval(() => { if (curView === 'home' && !document.hidden) loadOverview(); }, 120000);
+  // splash faqat bir marta (sessiya davomida)
+  const sp = $('splash'); let seen = false;
+  try { seen = sessionStorage.getItem('jidu_sp') === '1'; sessionStorage.setItem('jidu_sp', '1'); } catch (e) {}
+  if (seen || reduce) sp.remove(); else setTimeout(() => { sp.classList.add('out'); setTimeout(() => sp.remove(), 800); }, 1900);
+})();
+})();
+</script>
+</body>
+</html>
